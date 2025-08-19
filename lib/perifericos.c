@@ -2,7 +2,7 @@
 
 uint32_t rgb_u32(uint8_t r, uint8_t g, uint8_t b)
 {
-    return ((uint32_t)g << 16) | ((uint32_t)r << 8) | b;
+    return ((uint32_t)g << 24) | ((uint32_t)r << 16) | ((uint32_t)b << 8);
 }
 
 void alter_brightness(uint16_t lux, uint8_t *r, uint8_t *g, uint8_t *b)

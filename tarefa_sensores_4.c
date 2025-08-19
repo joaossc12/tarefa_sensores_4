@@ -11,9 +11,15 @@
 #include "lib/ssd1306.h"
 #include "lib/buzzer.h"
 
+// Leds
+
+#define LED_RED       13
+#define LED_BLUE      12
+#define LED_GREEN     11
+
 // Limites e Offset para o Lux e alerta sonoro do buzzer
 #define MAX_LUX 1000
-#define MIN_LUX 100
+#define MIN_LUX 10
 #define OFFSET_LUX 5
 
 //Variáveis globais para utilização da matriz de leds
@@ -21,15 +27,19 @@ PIO pio = pio0;
 uint offset;
 uint sm;
 
+// Varável para alternar LEDS
+
+uint flag_leds = 0;
+
 ssd1306_t ssd;
 
 // Trecho para modo BOOTSEL com botão B
 #include "pico/bootrom.h"
 #define botaoB 6
-void gpio_irq_handler(uint gpio, uint32_t events)
-{
-    reset_usb_boot(0, 0);
-}
+#define BUTTON_A      5
+void gpio_irq_handler(uint gpio, uint32_t events); //Função de callback dos botões
+void Control_Leds(uint flag); //Função de controle dos Leds
+
 
 int main()
 {
@@ -102,4 +112,49 @@ void init_matrix()
     offset = pio_add_program(pio, &pio_matrix_program);
     sm = pio_claim_unused_sm(pio, true);
     pio_matrix_program_init(pio, sm, offset, MATRIX);
+}
+void Control_Leds(uint flag){
+    switch (flag)
+    {
+    case 1:
+        gpio_put(LED_BLUE, 0);
+        gpio_put(LED_GREEN, 0);
+        gpio_put(LED_RED, 1);
+        break;
+    case 2:
+        gpio_put(LED_BLUE, 1);
+        gpio_put(LED_GREEN, 0);
+        gpio_put(LED_RED, 0);
+        break;
+    case 3:
+        gpio_put(LED_BLUE, 0);
+        gpio_put(LED_GREEN, 1);
+        gpio_put(LED_RED, 0);
+        break; 
+
+
+    default:
+        gpio_put(LED_BLUE, 0);
+        gpio_put(LED_GREEN, 0);
+        gpio_put(LED_RED, 0);
+        break;
+    }
+}
+void gpio_irq_handler(uint gpio, uint32_t events)
+{
+    static absolute_time_t last_time_A = 0;
+    static absolute_time_t last_time_B = 0;
+    absolute_time_t now = get_absolute_time();
+
+    if (gpio == BUTTON_A) {
+        if (absolute_time_diff_us(last_time_A, now) > 200000) { // 200ms debounce
+            flag_leds = (flag_leds + 1)%4;
+            }
+            last_time_A = now;}
+
+    if (gpio == botaoB) {
+        if (absolute_time_diff_us(last_time_A, now) > 200000) { // 200ms debounce
+            reset_usb_boot(0, 0);
+            }
+            last_time_B = now;}
 }
