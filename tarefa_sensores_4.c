@@ -12,9 +12,9 @@
 #include "lib/buzzer.h"
 
 // Limites e Offset para o Lux e alerta sonoro do buzzer
-#define MAX_LUX 3300
-#define MIN_LUX 1000
-#define OFFSET_LUX 200
+#define MAX_LUX 1000
+#define MIN_LUX 100
+#define OFFSET_LUX 5
 
 //Variáveis globais para utilização da matriz de leds
 PIO pio = pio0;
