@@ -9,6 +9,12 @@
 #include "lib/bh1750_light_sensor.h"
 #include "lib/perifericos.h"
 #include "lib/ssd1306.h"
+#include "lib/buzzer.h"
+
+// Limites e Offset para o Lux e alerta sonoro do buzzer
+#define MAX_LUX 3300
+#define MIN_LUX 1000
+#define OFFSET_LUX 200
 
 //Variáveis globais para utilização da matriz de leds
 PIO pio = pio0;
@@ -59,8 +65,10 @@ int main()
     //Inicializa o display OLED SSD1306
     init_ssd1306(&ssd);
 
-    while (true) {
+    // Inicializa o Buzzer
+    init_buzzer();
 
+    while (true) {
         uint16_t lux = bh1750_read_measurement(I2C_PORT);
         printf("Lux = %d\n", lux);
         sprintf(str_lux, "%d", lux);  // Converte o inteiro em string
@@ -80,6 +88,9 @@ int main()
 
         // Desenha os valores no display OLED
         draw_display(&ssd, str_red, str_green, str_blue, str_clear, str_lux);
+
+        // Liga/Desliga alerta sonoro de limites do Lux
+        handle_buzzer_warning(lux, MIN_LUX, MAX_LUX, OFFSET_LUX);
 
         sleep_ms(500);
     }
