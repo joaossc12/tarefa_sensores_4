@@ -8,16 +8,14 @@
 #include "lib/gy_33.h"
 #include "lib/bh1750_light_sensor.h"
 #include "lib/perifericos.h"
-
-//Definição para uso do segundo sensor (conectado ao i2c1)
-#define I2C1_PORT i2c1
-#define I2C1_SDA 2
-#define I2C1_SCL 3
+#include "lib/ssd1306.h"
 
 //Variáveis globais para utilização da matriz de leds
 PIO pio = pio0;
 uint offset;
 uint sm;
+
+ssd1306_t ssd;
 
 // Trecho para modo BOOTSEL com botão B
 #include "pico/bootrom.h"
@@ -45,16 +43,8 @@ int main()
     gpio_pull_up(SDA_PIN);
     gpio_pull_up(SCL_PIN);
 
-     // Inicializa o I2C1
-     i2c_init(I2C1_PORT, 400 * 1000);
-     gpio_set_function(I2C1_SDA, GPIO_FUNC_I2C);
-     gpio_set_function(I2C1_SCL, GPIO_FUNC_I2C);
-     gpio_pull_up(I2C1_SDA);
-     gpio_pull_up(I2C1_SCL);
-
-
     //Inicializa o o sensor de luz BH1750
-    bh1750_power_on(I2C1_PORT);
+    bh1750_power_on(I2C_PORT);
     char str_lux[10];  // Buffer para armazenar a string
     //Incializa o sensor de cor gy33
     gy33_init();
@@ -66,24 +56,30 @@ int main()
     //Inicializa a matriz de leds
     init_matrix();
 
+    //Inicializa o display OLED SSD1306
+    init_ssd1306(&ssd);
+
     while (true) {
 
-        uint16_t lux = bh1750_read_measurement(I2C1_PORT);
+        uint16_t lux = bh1750_read_measurement(I2C_PORT);
         printf("Lux = %d\n", lux);
-        sprintf(str_lux, "%d Lux", lux);  // Converte o inteiro em string
+        sprintf(str_lux, "%d", lux);  // Converte o inteiro em string
         sleep_ms(100);
 
         uint16_t r, g, b, c;
         gy33_read_color(&r, &g, &b, &c);
         printf("Cor detectada - R: %d, G: %d, B: %d, Clear: %d\n", r, g, b, c);
 
-        sprintf(str_red, "%d R", r);   // Converte o inteiro em string
-        sprintf(str_green, "%d G", g); 
-        sprintf(str_blue, "%d B", b);  
-        sprintf(str_clear, "%d C", c);
+        sprintf(str_red, "%d", r);   // Converte o inteiro em string
+        sprintf(str_green, "%d", g); 
+        sprintf(str_blue, "%d", b);  
+        sprintf(str_clear, "%d", c);
 
         //Aciona a matriz de acordo com os valores lidos
         draw_on_matrix(pio, sm, lux, r, g, b);
+
+        // Desenha os valores no display OLED
+        draw_display(&ssd, str_red, str_green, str_blue, str_clear, str_lux);
 
         sleep_ms(500);
     }
