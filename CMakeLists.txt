@@ -35,7 +35,9 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(tarefa_sensores_4 tarefa_sensores_4.c lib/gy_33.c lib/bh1750_light_sensor.c)
+add_executable(tarefa_sensores_4 tarefa_sensores_4.c lib/gy_33.c lib/bh1750_light_sensor.c lib/perifericos.c)
+
+pico_generate_pio_header(tarefa_sensores_4 ${CMAKE_CURRENT_LIST_DIR}/pio_matrix.pio)
 
 pico_set_program_name(tarefa_sensores_4 "tarefa_sensores_4")
 pico_set_program_version(tarefa_sensores_4 "0.1")
@@ -56,7 +58,8 @@ target_include_directories(tarefa_sensores_4 PRIVATE
 # Add any user requested libraries
 target_link_libraries(tarefa_sensores_4 
         hardware_i2c
-        
+        hardware_pio
+        hardware_clocks
         )
 
 pico_add_extra_outputs(tarefa_sensores_4)
