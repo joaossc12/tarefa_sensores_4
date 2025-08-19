@@ -40,16 +40,28 @@ ssd1306_t ssd;
 void gpio_irq_handler(uint gpio, uint32_t events); //Função de callback dos botões
 void Control_Leds(uint flag); //Função de controle dos Leds
 
-
 int main()
 {
     stdio_init_all();
 
+    //Inicia Leds
+    gpio_init(LED_BLUE);
+    gpio_init(LED_GREEN);
+    gpio_init(LED_RED);
+    gpio_set_dir(LED_BLUE, GPIO_OUT);
+    gpio_set_dir(LED_RED, GPIO_OUT);
+    gpio_set_dir(LED_GREEN, GPIO_OUT);
+
      // Para ser utilizado o modo BOOTSEL com botão B
-     gpio_init(botaoB);
-     gpio_set_dir(botaoB, GPIO_IN);
-     gpio_pull_up(botaoB);
-     gpio_set_irq_enabled_with_callback(botaoB, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);
+    gpio_init(botaoB);
+    gpio_set_dir(botaoB, GPIO_IN);
+    gpio_pull_up(botaoB);
+    gpio_set_irq_enabled_with_callback(botaoB, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);
+
+    gpio_init(BUTTON_A);
+    gpio_set_dir(BUTTON_A, GPIO_IN);
+    gpio_pull_up(BUTTON_A);
+    gpio_set_irq_enabled_with_callback(BUTTON_A, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);
     // Fim do trecho para modo BOOTSEL com botão B
 
     // Inicializa o I2C0
@@ -92,6 +104,8 @@ int main()
         sprintf(str_green, "%d", g); 
         sprintf(str_blue, "%d", b);  
         sprintf(str_clear, "%d", c);
+
+         Control_Leds(flag_leds);
 
         //Aciona a matriz de acordo com os valores lidos
         draw_on_matrix(pio, sm, lux, r, g, b);
